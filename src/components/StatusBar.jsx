@@ -5,27 +5,27 @@ export default function StatusBar({ state }) {
   const vramPct = Math.min((usedVram / state.maxVram) * 100, 100);
   const tempPct = Math.min((state.temperature / state.maxTemperature) * 100, 100);
   const vramCrit = usedVram > state.maxVram;
-  const tempCrit = state.temperature >= state.maxTemperature;
+  const slaCrit = state.sla < 40;
 
   return (
-    <header className="status-bar">
+    <header className={`status-bar ${state.isOverheated ? 'overheated' : ''}`}>
       {/* SLA */}
-      <div className="stat-block">
-        <span className="stat-label">SLA</span>
-        <span className={`stat-value sla ${state.sla < 40 ? 'critical' : ''}`}>
-          {state.sla}
-        </span>
+      <div className="stat-card">
+        <div className="stat-label">SLA</div>
+        <div className={`stat-value ${slaCrit ? 'critical' : ''}`}>
+          {state.sla}<span className="unit">%</span>
+        </div>
       </div>
 
       {/* VRAM */}
-      <div className="bar-group">
-        <div className="bar-header">
-          <span className="bar-label">VRAM</span>
-          <span className="bar-value" style={{ color: vramCrit ? 'var(--color-error)' : undefined }}>
-            {usedVram} / {state.maxVram}
+      <div className="stat-card">
+        <div className="stat-label">
+          VRAM
+          <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>
+            {usedVram}/{state.maxVram}
           </span>
         </div>
-        <div className="bar-track">
+        <div className="bar-track" style={{ marginTop: 10 }}>
           <div
             className={`bar-fill vram ${vramCrit ? 'critical' : ''}`}
             style={{ width: `${vramPct}%` }}
@@ -33,33 +33,61 @@ export default function StatusBar({ state }) {
         </div>
       </div>
 
-      {/* Temperature */}
-      <div className="bar-group">
-        <div className="bar-header">
-          <span className="bar-label">
-            TEMP
-            {state.isOverheated && <span className="overheat-badge" style={{ marginLeft: 6 }}>过热</span>}
-          </span>
-          <span className="bar-value">{state.temperature} / {state.maxTemperature}</span>
+      {/* 热量 */}
+      <div className="stat-card">
+        <div className="stat-label">
+          热量
+          {state.isOverheated ? (
+            <span className="overheat-tag">过热</span>
+          ) : (
+            <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>
+              {state.temperature}/{state.maxTemperature}
+            </span>
+          )}
         </div>
-        <div className="bar-track">
+        <div className="bar-track" style={{ marginTop: 10 }}>
           <div
-            className={`bar-fill temp ${tempCrit ? 'overheat' : ''}`}
+            className="bar-fill temp"
             style={{ width: `${tempPct}%` }}
           />
         </div>
       </div>
 
-      {/* Compute */}
-      <div className="stat-block" style={{ textAlign: 'right' }}>
-        <span className="stat-label">Compute</span>
-        <span className="stat-value compute">{state.compute}</span>
+      {/* Compute / Energy 合并 */}
+      <div className="stat-card" style={{ display: 'flex', flexDirection: 'row', gap: 'var(--s-5)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="stat-label">Compute</div>
+          <div className="stat-value">
+            {state.compute}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="stat-label">Energy</div>
+          <div className="stat-value">
+            {state.energy}<span className="unit">/{state.maxEnergy}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Energy */}
-      <div className="stat-block" style={{ textAlign: 'right' }}>
-        <span className="stat-label">Energy</span>
-        <span className="stat-value energy">{state.energy} / {state.maxEnergy}</span>
+      {/* Wave + Deck 右侧 */}
+      <div className="deck-badges">
+        <div className="deck-badge">
+          <div className="deck-badge-value">{state.wave}</div>
+          <div className="deck-badge-label">Wave</div>
+        </div>
+        <div className="deck-badge">
+          <div className="deck-badge-value">{state.turn}</div>
+          <div className="deck-badge-label">Turn</div>
+        </div>
+        <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--border)', margin: '0 4px' }} />
+        <div className="deck-badge">
+          <div className="deck-badge-value">{state.drawPile.length}</div>
+          <div className="deck-badge-label">抽</div>
+        </div>
+        <div className="deck-badge">
+          <div className="deck-badge-value">{state.discardPile.length}</div>
+          <div className="deck-badge-label">弃</div>
+        </div>
       </div>
     </header>
   );

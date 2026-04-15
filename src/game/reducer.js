@@ -42,7 +42,7 @@ function drawCards(state, count) {
       if (discard.length === 0) break;
       draw = shuffle(discard);
       discard = [];
-      logs = addLog(logs, '[Deck] 弃牌堆已洗入抽牌堆。', 'info');
+      logs = addLog(logs, '弃牌堆已洗入抽牌堆。', 'info');
     }
     hand.push(draw.pop());
   }
@@ -97,12 +97,12 @@ export function gameReducer(state, action) {
       if (!card) return state;
       const newCard = { ...card, instanceId: `${card.id}_reward_${Date.now()}` };
       const newDiscard = [...state.discardPile, newCard];
-      let logs = addLog(state.logs, `[奖励] 已将 "${card.name}" 加入牌库。`, 'success');
+      let logs = addLog(state.logs, `已将 "${card.name}" 加入牌库。`, 'success');
 
       // 进入新波次
       const newWave = state.wave + 1;
       const newRequests = recalcCacheHits(generateWave(newWave));
-      logs = addLog(logs, `[Wave ${newWave}] 新一波流量洪峰到来！`, 'warn');
+      logs = addLog(logs, `Wave ${newWave} — 新一波流量到来`, 'warn');
 
       const nextState = drawCards(
         {
@@ -126,7 +126,7 @@ export function gameReducer(state, action) {
     case 'SKIP_REWARD': {
       const newWave = state.wave + 1;
       const newRequests = recalcCacheHits(generateWave(newWave));
-      let logs = addLog(state.logs, `[Wave ${newWave}] 新一波流量洪峰到来！`, 'warn');
+      let logs = addLog(state.logs, `Wave ${newWave} — 新一波流量到来`, 'warn');
 
       const nextState = drawCards(
         {
@@ -159,16 +159,14 @@ export function gameReducer(state, action) {
 function resolveTurn(state) {
   let s = { ...state };
   let logs = s.logs;
-  logs = addLog(logs, `─── 结算 Wave ${s.wave} · 回合 ${s.turn} ───`, 'dim');
-
   // 1. OOM 检查
   const usedVram = calcUsedVram(s);
   if (usedVram > s.maxVram) {
-    logs = addLog(logs, `CRITICAL: OOM！内存溢出（${usedVram}/${s.maxVram} VRAM），所有请求崩溃！`, 'error');
+    logs = addLog(logs, `内存溢出（${usedVram}/${s.maxVram} VRAM），所有请求崩溃，SLA -10`, 'error');
     s = { ...s, sla: s.sla - 10, requests: [], logs };
   } else {
     // 2. 算力分配
-    const { requests: afterCompute, computeLeft, logs: cLogs } = distributeCompute(s, logs);
+    const { requests: afterCompute, logs: cLogs } = distributeCompute(s, logs);
     logs = cLogs;
     s = { ...s, requests: afterCompute, logs };
 
@@ -179,11 +177,6 @@ function resolveTurn(state) {
       requests: afterCompute.filter((r) => r.tokens > 0),
       stats: { ...s.stats, requestsHandled: s.stats.requestsHandled + handled },
     };
-
-    // 携带剩余算力到下回合（autoscale）
-    if (s.turnBuffs.carryComputeNext) {
-      s = { ...s, turnBuffs: { ...s.turnBuffs, extraComputeCarried: computeLeft } };
-    }
   }
 
   // 4. Timeout + Age 更新
@@ -193,7 +186,7 @@ function resolveTurn(state) {
   for (const req of s.requests) {
     const newAge = req.age + 1;
     if (newAge >= req.timeout) {
-      logs = addLog(logs, `请求 ${req.id} [${req.label}] 超时 (Timeout)！SLA -2。`, 'error');
+      logs = addLog(logs, `请求 ${req.id}（${req.label}）超时，SLA -2`, 'error');
       slaLoss += 2;
       timedOut++;
     } else {
@@ -212,7 +205,7 @@ function resolveTurn(state) {
   let temp = s.temperature;
   if (temp >= s.maxTemperature) {
     s = { ...s, isOverheated: true };
-    logs = addLog(s.logs, 'WARNING: 系统过热！下回合算力减半，且禁用 Infra 卡。', 'error');
+    logs = addLog(s.logs, '系统过热 — 下回合 Compute 减半，Infra 卡被锁定', 'error');
   } else {
     s = { ...s, isOverheated: false };
   }
@@ -220,11 +213,10 @@ function resolveTurn(state) {
   s = { ...s, temperature: temp, logs };
 
   // 6. 回合 Buff 重置
-  const carried = s.turnBuffs.carryComputeNext ? s.turnBuffs.extraComputeCarried : 0;
   s = { ...s, turnBuffs: getDefaultTurnBuffs() };
 
   // 7. 资源重置
-  const nextCompute = (s.isOverheated ? Math.floor(s.baseCompute / 2) : s.baseCompute) + carried;
+  const nextCompute = s.isOverheated ? Math.floor(s.baseCompute / 2) : s.baseCompute;
   s = {
     ...s,
     turn: s.turn + 1,
@@ -271,19 +263,6 @@ function distributeCompute(state, logs) {
     if (!req) continue;
 
     const multiplier = req.cacheHit ? (state.turnBuffs.cacheMultiplier || 2) : 1;
-
-    // 巨型推理：需要一次性击杀
-    if (req.mustOneShot) {
-      const computeNeeded = Math.ceil(req.tokens / multiplier);
-      if (availableCompute >= computeNeeded) {
-        logs = addLog(logs, `✓ 巨型推理 ${req.id} 已完成处理。`, 'success');
-        availableCompute -= computeNeeded;
-        req.tokens = 0;
-      } else {
-        logs = addLog(logs, `巨型推理 ${req.id} 算力不足，无法完成（需 ${computeNeeded}，剩 ${availableCompute}）。`, 'warn');
-      }
-      continue;
-    }
 
     const maxDamage = availableCompute * multiplier;
     if (maxDamage >= req.tokens) {
@@ -386,8 +365,8 @@ function applyCardEffect(state, card) {
       break;
 
     case 'AUTOSCALE':
-      s = { ...s, compute: s.compute + a.compute, temperature: s.temperature + a.heat, turnBuffs: { ...s.turnBuffs, carryComputeNext: true } };
-      logs = addLog(logs, `弹性扩容：+${a.compute} 算力，+${a.heat} 温度。剩余算力将延续至下回合。`, 'info');
+      s = { ...s, compute: s.compute + a.compute, temperature: s.temperature + a.heat };
+      logs = addLog(logs, `弹性扩容：+${a.compute} Compute，+${a.heat} 热量。`, 'info');
       break;
 
     default:
@@ -402,8 +381,6 @@ function getDefaultTurnBuffs() {
   return {
     vramReduction: 0,
     cacheMultiplier: 2,
-    carryComputeNext: false,
-    extraComputeCarried: 0,
   };
 }
 
