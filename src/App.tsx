@@ -1,15 +1,16 @@
 import { useReducer, useEffect, useCallback } from 'react';
-import { gameReducer } from './game/reducer';
-import { createInitialState } from './game/state';
-import StatusBar from './components/StatusBar';
-import TrafficQueue from './components/TrafficQueue';
-import CardHand from './components/CardHand';
-import ToastLog from './components/ToastLog';
-import WaveReward from './components/WaveReward';
-import GameOver from './components/GameOver';
+import { gameReducer } from './game/reducer.ts';
+import { createInitialState } from './game/state.ts';
+import StatusBar from './components/StatusBar.tsx';
+import TrafficQueue from './components/TrafficQueue.tsx';
+import CardHand from './components/CardHand.tsx';
+import ToastLog from './components/ToastLog.tsx';
+import WaveReward from './components/WaveReward.tsx';
+import GameOver from './components/GameOver.tsx';
+import type { GameState } from './game/types.ts';
 
 function App() {
-  const [state, dispatch] = useReducer(gameReducer, null, createInitialState);
+  const [state, dispatch] = useReducer(gameReducer, undefined as unknown as GameState, createInitialState);
 
   useEffect(() => {
     dispatch({ type: 'DRAW_INITIAL_HAND' });

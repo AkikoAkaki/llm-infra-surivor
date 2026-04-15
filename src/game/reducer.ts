@@ -44,7 +44,7 @@ function recalcCacheHits(requests: RequestInstance[]): RequestInstance[] {
 function drawCards(state: GameState, count: number): GameState {
   let draw = [...state.drawPile];
   let discard = [...state.discardPile];
-  let hand = [...state.hand];
+  const hand = [...state.hand];
   let logs = state.logs;
 
   for (let i = 0; i < count; i++) {
@@ -136,7 +136,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SKIP_REWARD': {
       const newWave = state.wave + 1;
       const newRequests = recalcCacheHits(generateWave(newWave));
-      let logs = addLog(state.logs, `Wave ${newWave} — 新一波流量到来`, 'warn');
+      const logs = addLog(state.logs, `Wave ${newWave} — 新一波流量到来`, 'warn');
 
       const nextState = drawCards(
         {
