@@ -255,6 +255,10 @@ body {
   min-height: 0;
 }
 
+.main-area .panel {
+  flex: 1;
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -699,14 +703,22 @@ body {
 }
 
 /* ── System Log / Console 面板 ──────────────────────── */
-.main-area > :first-child {
-  flex: 1; /* 流量队列自适应铺满上方 */
+.bottom-row {
+  display: flex;
+  gap: var(--s-4);
+  flex-shrink: 0;
+  align-items: stretch;
 }
 
 .system-log-panel {
-  height: 180px;
+  width: 380px;
   flex-shrink: 0;
   animation: slide-in 220ms ease-out;
+}
+
+.bottom-row .hand-area {
+  flex: 1;
+  min-width: 0; /* for inner scroll */
 }
 
 .log-console {

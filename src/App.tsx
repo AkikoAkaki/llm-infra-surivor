@@ -56,10 +56,12 @@ function App() {
 
       <div className="main-area">
         <TrafficQueue state={state} />
-        <ToastLog logs={state.logs} />
       </div>
 
-      <CardHand state={state} onPlayCard={handlePlayCard} />
+      <div className="bottom-row">
+        <ToastLog logs={state.logs} />
+        <CardHand state={state} onPlayCard={handlePlayCard} />
+      </div>
 
       {state.phase === 'ACTION' && (
         <button className="end-turn-float" onClick={handleEndTurn}>
