@@ -1,6 +1,11 @@
-import { calcUsedVram } from '../game/reducer.js';
+import { calcUsedVram } from '../game/reducer';
+import type { GameState, RequestInstance } from '../game/types';
 
-export default function TrafficQueue({ state }) {
+interface TrafficQueueProps {
+  state: GameState;
+}
+
+export default function TrafficQueue({ state }: TrafficQueueProps) {
   const usedVram = calcUsedVram(state);
   const vramCrit = usedVram > state.maxVram;
 
@@ -49,7 +54,14 @@ export default function TrafficQueue({ state }) {
   );
 }
 
-function RequestRow({ req, vramReduction, showCacheLink, cacheMultiplier }) {
+interface RequestRowProps {
+  req: RequestInstance;
+  vramReduction: number;
+  showCacheLink: boolean | RequestInstance;
+  cacheMultiplier: number;
+}
+
+function RequestRow({ req, vramReduction, showCacheLink, cacheMultiplier }: RequestRowProps) {
   const actualVram = req.cacheHit ? 0 : Math.max(1, req.baseVram - vramReduction);
   const ageDanger = req.age >= req.timeout - 1;
   const ageWarn = !ageDanger && req.age >= Math.ceil(req.timeout / 2);

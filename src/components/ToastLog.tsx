@@ -1,11 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
+import type { LogEntry } from '../game/types';
 
 const TOAST_LIFETIME_MS = 3400;
 const MAX_VISIBLE = 3;
 
-export default function ToastLog({ logs }) {
-  const [visible, setVisible] = useState([]);
-  const seenRef = useRef(new Set());
+interface ToastLogProps {
+  logs: LogEntry[];
+}
+
+export default function ToastLog({ logs }: ToastLogProps) {
+  const [visible, setVisible] = useState<LogEntry[]>([]);
+  const seenRef = useRef(new Set<string | number>());
 
   useEffect(() => {
     // 只展示新出现的日志（避免首次渲染把历史 log 全部 toast 出来）

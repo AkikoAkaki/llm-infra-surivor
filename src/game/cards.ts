@@ -2,7 +2,9 @@
 // type: 'Infra' | 'Optimize' | 'Ops'
 // 描述文案遵循：时效在前（"本回合 / 永久"），效果在后，简洁直白
 
-export const ALL_CARDS = [
+import type { CardDef, CardInstance } from './types';
+
+export const ALL_CARDS: CardDef[] = [
   // ── Infra ──────────────────────────────────────────────
   {
     id: 'infra_a100',
@@ -151,7 +153,7 @@ export const ALL_CARDS = [
 ];
 
 // 初始卡组
-export const STARTER_DECK_IDS = [
+export const STARTER_DECK_IDS: string[] = [
   'infra_cooling',
   'infra_cooling',
   'opt_paged',
@@ -164,18 +166,18 @@ export const STARTER_DECK_IDS = [
   'opt_int8',
 ];
 
-export function getCardById(id) {
+export function getCardById(id: string): CardDef | undefined {
   return ALL_CARDS.find((c) => c.id === id);
 }
 
-export function buildStarterDeck() {
+export function buildStarterDeck(): CardInstance[] {
   return STARTER_DECK_IDS.map((id, i) => ({
-    ...getCardById(id),
+    ...getCardById(id)!,
     instanceId: `${id}_starter_${i}`,
   }));
 }
 
 // 波次奖励池（排除初始低级卡）
-export const REWARD_POOL = ALL_CARDS.filter(
+export const REWARD_POOL: CardDef[] = ALL_CARDS.filter(
   (c) => !['infra_cooling', 'ops_ratelimit', 'opt_paged'].includes(c.id)
 );

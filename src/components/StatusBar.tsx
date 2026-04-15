@@ -1,6 +1,11 @@
-import { calcUsedVram } from '../game/reducer.js';
+import { calcUsedVram } from '../game/reducer';
+import type { GameState } from '../game/types';
 
-export default function StatusBar({ state }) {
+interface StatusBarProps {
+  state: GameState;
+}
+
+export default function StatusBar({ state }: StatusBarProps) {
   const usedVram = calcUsedVram(state);
   const vramPct = Math.min((usedVram / state.maxVram) * 100, 100);
   const tempPct = Math.min((state.temperature / state.maxTemperature) * 100, 100);

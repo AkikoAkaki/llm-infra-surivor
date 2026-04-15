@@ -1,11 +1,21 @@
 // 游戏核心 Reducer — 所有状态转换的纯函数集合
 // 遵循 (state, action) => newState 模式，无副作用
 
-import { generateWave } from './enemies.js';
-import { REWARD_POOL, getCardById } from './cards.js';
+import { generateWave } from './enemies';
+import { REWARD_POOL, getCardById } from './cards';
+import type {
+  GameState,
+  GameAction,
+  CardInstance,
+  CardAction,
+  LogColor,
+  LogEntry,
+  RequestInstance,
+  TurnBuffs,
+} from './types';
 
 // ── 工具函数 ────────────────────────────────────────────────────────────
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -14,16 +24,16 @@ function shuffle(arr) {
   return a;
 }
 
-function addLog(logs, msg, color = 'default') {
+function addLog(logs: LogEntry[], msg: string, color: LogColor = 'default'): LogEntry[] {
   return [...logs, { msg, color, id: Date.now() + Math.random() }];
 }
 
-function clamp(val, min, max) {
+function clamp(val: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, val));
 }
 
 // 相邻相同 color 的请求标记为 Cache Hit
-function recalcCacheHits(requests) {
+function recalcCacheHits(requests: RequestInstance[]): RequestInstance[] {
   return requests.map((req, i) => ({
     ...req,
     cacheHit: i > 0 && req.color === requests[i - 1].color,
@@ -31,7 +41,7 @@ function recalcCacheHits(requests) {
 }
 
 // 从牌库抽指定数量的牌（自动洗牌补充）
-function drawCards(state, count) {
+function drawCards(state: GameState, count: number): GameState {
   let draw = [...state.drawPile];
   let discard = [...state.discardPile];
   let hand = [...state.hand];
@@ -44,14 +54,14 @@ function drawCards(state, count) {
       discard = [];
       logs = addLog(logs, '弃牌堆已洗入抽牌堆。', 'info');
     }
-    hand.push(draw.pop());
+    hand.push(draw.pop()!);
   }
 
   return { ...state, drawPile: draw, discardPile: discard, hand, logs };
 }
 
 // ── 主 Reducer ──────────────────────────────────────────────────────────
-export function gameReducer(state, action) {
+export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
 
     // ── 初始抽牌 ──
@@ -77,7 +87,7 @@ export function gameReducer(state, action) {
       // 消耗 Energy，移出手牌，加入弃牌堆
       const newHand = state.hand.filter((_, i) => i !== cardIndex);
       const newDiscard = [...state.discardPile, card];
-      let s = { ...state, energy: state.energy - card.cost, hand: newHand, discardPile: newDiscard };
+      let s: GameState = { ...state, energy: state.energy - card.cost, hand: newHand, discardPile: newDiscard };
 
       // 执行卡效
       s = applyCardEffect(s, card);
@@ -93,11 +103,11 @@ export function gameReducer(state, action) {
     // ── 选择奖励 ──
     case 'SELECT_REWARD': {
       const { cardId } = action;
-      const card = getCardById(cardId);
-      if (!card) return state;
-      const newCard = { ...card, instanceId: `${card.id}_reward_${Date.now()}` };
+      const cardDef = getCardById(cardId);
+      if (!cardDef) return state;
+      const newCard: CardInstance = { ...cardDef, instanceId: `${cardDef.id}_reward_${Date.now()}` };
       const newDiscard = [...state.discardPile, newCard];
-      let logs = addLog(state.logs, `已将 "${card.name}" 加入牌库。`, 'success');
+      let logs = addLog(state.logs, `已将 "${cardDef.name}" 加入牌库。`, 'success');
 
       // 进入新波次
       const newWave = state.wave + 1;
@@ -156,7 +166,7 @@ export function gameReducer(state, action) {
 }
 
 // ── 回合结算逻辑 ────────────────────────────────────────────────────────
-function resolveTurn(state) {
+function resolveTurn(state: GameState): GameState {
   let s = { ...state };
   let logs = s.logs;
   // 1. OOM 检查
@@ -180,7 +190,7 @@ function resolveTurn(state) {
   }
 
   // 4. Timeout + Age 更新
-  const aged = [];
+  const aged: RequestInstance[] = [];
   let slaLoss = 0;
   let timedOut = 0;
   for (const req of s.requests) {
@@ -202,15 +212,15 @@ function resolveTurn(state) {
   };
 
   // 5. 温度结算
-  let temp = s.temperature;
+  const temp = s.temperature;
   if (temp >= s.maxTemperature) {
     s = { ...s, isOverheated: true };
     logs = addLog(s.logs, '系统过热 — 下回合 Compute 减半，Infra 卡被锁定', 'error');
   } else {
     s = { ...s, isOverheated: false };
   }
-  temp = clamp(temp - 2, 0, 100); // 自然冷却
-  s = { ...s, temperature: temp, logs };
+  const cooledTemp = clamp(temp - 2, 0, 100); // 自然冷却
+  s = { ...s, temperature: cooledTemp, logs };
 
   // 6. 回合 Buff 重置
   s = { ...s, turnBuffs: getDefaultTurnBuffs() };
@@ -249,7 +259,10 @@ function resolveTurn(state) {
 }
 
 // ── 算力分配 ────────────────────────────────────────────────────────────
-function distributeCompute(state, logs) {
+function distributeCompute(
+  state: GameState,
+  logs: LogEntry[]
+): { requests: RequestInstance[]; computeLeft: number; logs: LogEntry[] } {
   let availableCompute = state.compute;
   const requests = [...state.requests];
 
@@ -279,8 +292,8 @@ function distributeCompute(state, logs) {
 }
 
 // ── 卡牌效果应用 ─────────────────────────────────────────────────────────
-function applyCardEffect(state, card) {
-  const a = card.action;
+function applyCardEffect(state: GameState, card: CardInstance): GameState {
+  const a: CardAction = card.action;
   let s = { ...state };
   let logs = s.logs;
 
@@ -321,7 +334,7 @@ function applyCardEffect(state, card) {
       break;
 
     case 'REORDER_QUEUE': {
-      const sorted = recalcCacheHits([...s.requests].sort((a, b) => a.color.localeCompare(b.color)));
+      const sorted = recalcCacheHits([...s.requests].sort((x, y) => x.color.localeCompare(y.color)));
       s = { ...s, requests: sorted };
       logs = addLog(logs, '流量重排完成，缓存命中率已优化。', 'info');
       break;
@@ -377,14 +390,14 @@ function applyCardEffect(state, card) {
 }
 
 // ── 工具 ─────────────────────────────────────────────────────────────────
-function getDefaultTurnBuffs() {
+function getDefaultTurnBuffs(): TurnBuffs {
   return {
     vramReduction: 0,
     cacheMultiplier: 2,
   };
 }
 
-export function calcUsedVram(state) {
+export function calcUsedVram(state: GameState): number {
   let used = state.baseVram;
   for (const req of state.requests) {
     if (req.cacheHit) continue;
@@ -393,9 +406,9 @@ export function calcUsedVram(state) {
   return used;
 }
 
-function pickRewards(count) {
+function pickRewards(count: number): CardInstance[] {
   const pool = [...REWARD_POOL];
-  const chosen = [];
+  const chosen: CardInstance[] = [];
   for (let i = 0; i < count && pool.length > 0; i++) {
     const idx = Math.floor(Math.random() * pool.length);
     chosen.push({ ...pool[idx], instanceId: `${pool[idx].id}_rwd_${Date.now()}_${i}` });

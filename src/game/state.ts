@@ -1,7 +1,8 @@
-import { buildStarterDeck } from './cards.js';
-import { generateWave } from './enemies.js';
+import { buildStarterDeck } from './cards';
+import { generateWave } from './enemies';
+import type { GameState, CardInstance } from './types';
 
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -10,8 +11,8 @@ function shuffle(arr) {
   return a;
 }
 
-export function createInitialState() {
-  const drawPile = shuffle(buildStarterDeck());
+export function createInitialState(): GameState {
+  const drawPile: CardInstance[] = shuffle(buildStarterDeck());
   const wave = 1;
 
   return {
@@ -30,7 +31,7 @@ export function createInitialState() {
     // ── 波次与回合 ──
     wave,
     turn: 1,
-    phase: 'ACTION',   // 'ACTION' | 'REWARD' | 'GAMEOVER'
+    phase: 'ACTION',
 
     // ── 卡牌系统 ──
     drawPile,

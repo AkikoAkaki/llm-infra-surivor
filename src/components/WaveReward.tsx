@@ -1,4 +1,12 @@
-export default function WaveReward({ state, onSelect, onSkip }) {
+import type { GameState } from '../game/types';
+
+interface WaveRewardProps {
+  state: GameState;
+  onSelect: (cardId: string) => void;
+  onSkip: () => void;
+}
+
+export default function WaveReward({ state, onSelect, onSkip }: WaveRewardProps) {
   return (
     <div className="overlay">
       <div className="modal reward-modal">

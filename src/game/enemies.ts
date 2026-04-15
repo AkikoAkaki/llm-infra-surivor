@@ -1,6 +1,8 @@
 // 请求类型定义 — 每种类型对应一类敌人/流量
 
-export const REQUEST_TYPES = {
+import type { RequestTypeDef, RequestTypeName, RequestInstance } from './types';
+
+export const REQUEST_TYPES: Record<RequestTypeName, RequestTypeDef> = {
   SHORT_QUERY: {
     type: 'SHORT_QUERY',
     label: '短查询',
@@ -49,8 +51,8 @@ export const REQUEST_TYPES = {
 };
 
 // 按 wave 数返回可出现的敌人类型列表
-export function getAvailableTypes(wave) {
-  const types = [REQUEST_TYPES.SHORT_QUERY, REQUEST_TYPES.LONG_CONTEXT];
+export function getAvailableTypes(wave: number): RequestTypeDef[] {
+  const types: RequestTypeDef[] = [REQUEST_TYPES.SHORT_QUERY, REQUEST_TYPES.LONG_CONTEXT];
   if (wave >= 2) types.push(REQUEST_TYPES.JAILBREAK);
   if (wave >= 3) types.push(REQUEST_TYPES.DDOS);
   if (wave >= 4) types.push(REQUEST_TYPES.GIANT_INFERENCE);
@@ -58,7 +60,7 @@ export function getAvailableTypes(wave) {
 }
 
 // 加权随机
-export function pickRandomType(wave) {
+export function pickRandomType(wave: number): RequestTypeDef {
   const pool = getAvailableTypes(wave);
   const total = pool.reduce((s, t) => s + t.weight, 0);
   let r = Math.random() * total;
@@ -71,9 +73,9 @@ export function pickRandomType(wave) {
 
 // 生成一波请求
 let _reqCounter = 0;
-export function generateWave(wave) {
+export function generateWave(wave: number): RequestInstance[] {
   const baseCount = 3 + Math.floor(wave * 1.2);
-  const requests = [];
+  const requests: RequestInstance[] = [];
 
   for (let i = 0; i < baseCount; i++) {
     const typeInfo = pickRandomType(wave);

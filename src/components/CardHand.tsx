@@ -1,4 +1,11 @@
-export default function CardHand({ state, onPlayCard }) {
+import type { GameState } from '../game/types';
+
+interface CardHandProps {
+  state: GameState;
+  onPlayCard: (instanceId: string) => void;
+}
+
+export default function CardHand({ state, onPlayCard }: CardHandProps) {
   const pips = Array.from({ length: state.maxEnergy }, (_, i) => i < state.energy);
   return (
     <div className="hand-area">
@@ -33,7 +40,16 @@ export default function CardHand({ state, onPlayCard }) {
   );
 }
 
-function Card({ card, isOverheated, energy, onPlay }) {
+import type { CardInstance } from '../game/types';
+
+interface CardProps {
+  card: CardInstance;
+  isOverheated: boolean;
+  energy: number;
+  onPlay: () => void;
+}
+
+function Card({ card, isOverheated, energy, onPlay }: CardProps) {
   const canAfford = energy >= card.cost;
   const isRestricted = isOverheated && card.type === 'Infra';
   const playable = canAfford && !isRestricted;

@@ -1,4 +1,11 @@
-export default function GameOver({ state, onRestart }) {
+import type { GameState } from '../game/types';
+
+interface GameOverProps {
+  state: GameState;
+  onRestart: () => void;
+}
+
+export default function GameOver({ state, onRestart }: GameOverProps) {
   const { stats, wave } = state;
 
   return (

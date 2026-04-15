@@ -1,12 +1,12 @@
 import { useReducer, useEffect, useCallback } from 'react';
-import { gameReducer } from './game/reducer.js';
-import { createInitialState } from './game/state.js';
-import StatusBar from './components/StatusBar.jsx';
-import TrafficQueue from './components/TrafficQueue.jsx';
-import CardHand from './components/CardHand.jsx';
-import ToastLog from './components/ToastLog.jsx';
-import WaveReward from './components/WaveReward.jsx';
-import GameOver from './components/GameOver.jsx';
+import { gameReducer } from './game/reducer';
+import { createInitialState } from './game/state';
+import StatusBar from './components/StatusBar';
+import TrafficQueue from './components/TrafficQueue';
+import CardHand from './components/CardHand';
+import ToastLog from './components/ToastLog';
+import WaveReward from './components/WaveReward';
+import GameOver from './components/GameOver';
 
 function App() {
   const [state, dispatch] = useReducer(gameReducer, null, createInitialState);
@@ -15,7 +15,7 @@ function App() {
     dispatch({ type: 'DRAW_INITIAL_HAND' });
   }, []);
 
-  const handlePlayCard = useCallback((instanceId) => {
+  const handlePlayCard = useCallback((instanceId: string) => {
     dispatch({ type: 'PLAY_CARD', instanceId });
   }, []);
 
@@ -23,7 +23,7 @@ function App() {
     dispatch({ type: 'END_TURN' });
   }, []);
 
-  const handleSelectReward = useCallback((cardId) => {
+  const handleSelectReward = useCallback((cardId: string) => {
     dispatch({ type: 'SELECT_REWARD', cardId });
   }, []);
 
@@ -38,7 +38,7 @@ function App() {
 
   // 空格键 / 回车 结束回合
   useEffect(() => {
-    const onKey = (e) => {
+    const onKey = (e: KeyboardEvent) => {
       if (state.phase !== 'ACTION') return;
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
