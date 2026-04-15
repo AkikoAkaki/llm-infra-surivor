@@ -235,10 +235,24 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 主内容区（单栏：只有 Traffic Queue） ──────────── */
-.main-area {
+/* ── 主内容区（双栏布局） ──────────── */
+.content-split {
   flex: 1;
   min-height: 0;
+  display: flex;
+  gap: var(--s-4);
+}
+
+.left-column {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-column {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
@@ -255,7 +269,7 @@ body {
   min-height: 0;
 }
 
-.main-area .panel {
+.right-column .panel {
   flex: 1;
 }
 
@@ -542,10 +556,13 @@ body {
 .hand-inner {
   display: flex;
   gap: var(--s-3);
-  overflow-x: auto;
   padding: var(--s-2);
   min-height: 190px;
   align-items: stretch;
+  flex-wrap: wrap;       /* Allow multi-line */
+  overflow-y: auto;      /* Scroll vertically if needed */
+  overflow-x: hidden;
+  max-height: 280px;     /* Ensure it doesn't grow infinitely vertically */
 }
 
 .card {
@@ -703,16 +720,9 @@ body {
 }
 
 /* ── System Log / Console 面板 ──────────────────────── */
-.bottom-row {
-  display: flex;
-  gap: var(--s-4);
-  flex-shrink: 0;
-  align-items: stretch;
-}
-
 .system-log-panel {
-  width: 380px;
-  flex-shrink: 0;
+  flex: 1; /* Stretch to fill left column vertically */
+  width: 100%;
   animation: slide-in 220ms ease-out;
 }
 

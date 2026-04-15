@@ -54,13 +54,15 @@ function App() {
     <div className="game-shell">
       <StatusBar state={state} />
 
-      <div className="main-area">
-        <TrafficQueue state={state} />
-      </div>
+      <div className="content-split">
+        <div className="left-column">
+          <ToastLog logs={state.logs} />
+        </div>
 
-      <div className="bottom-row">
-        <ToastLog logs={state.logs} />
-        <CardHand state={state} onPlayCard={handlePlayCard} />
+        <div className="right-column">
+          <TrafficQueue state={state} />
+          <CardHand state={state} onPlayCard={handlePlayCard} />
+        </div>
       </div>
 
       {state.phase === 'ACTION' && (
