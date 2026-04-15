@@ -1,5 +1,4 @@
-// 敌人（请求）类型数据库
-// 每个类型决定了对应请求的基础属性和特殊行为标签
+// 请求类型定义 — 每种类型对应一类敌人/流量
 
 export const REQUEST_TYPES = {
   SHORT_QUERY: {
@@ -9,7 +8,7 @@ export const REQUEST_TYPES = {
     tokens: 2,
     baseVram: 1,
     timeout: 3,
-    weight: 40, // 生成权重（越高越常见）
+    weight: 40,
   },
   LONG_CONTEXT: {
     type: 'LONG_CONTEXT',
@@ -26,7 +25,7 @@ export const REQUEST_TYPES = {
     color: 'red',
     tokens: 3,
     baseVram: 1,
-    timeout: 2, // 只有 2 回合 Timeout
+    timeout: 2,
     weight: 15,
   },
   GIANT_INFERENCE: {
@@ -37,23 +36,19 @@ export const REQUEST_TYPES = {
     baseVram: 4,
     timeout: 4,
     weight: 10,
-    // 特殊规则：必须在单回合内一次性击杀，否则不扣令牌
-    mustOneShot: true,
   },
   DDOS: {
     type: 'DDOS',
     label: 'DDoS 攻击',
     color: 'red',
-    tokens: 2,
-    baseVram: 1,
-    timeout: 3,
+    tokens: 4,        // 单个就很重（原先靠翻倍生成，现在合并为一个更重的请求）
+    baseVram: 2,
+    timeout: 2,
     weight: 10,
-    // 特殊规则：该类型在波次生成时计数为 2x
-    ddos: true,
   },
 };
 
-// 按 wave 数返回可出现的敌人类型列表（带权重）
+// 按 wave 数返回可出现的敌人类型列表
 export function getAvailableTypes(wave) {
   const types = [REQUEST_TYPES.SHORT_QUERY, REQUEST_TYPES.LONG_CONTEXT];
   if (wave >= 2) types.push(REQUEST_TYPES.JAILBREAK);
@@ -62,11 +57,11 @@ export function getAvailableTypes(wave) {
   return types;
 }
 
-// 加权随机选择一个请求类型
+// 加权随机
 export function pickRandomType(wave) {
   const pool = getAvailableTypes(wave);
-  const totalWeight = pool.reduce((s, t) => s + t.weight, 0);
-  let r = Math.random() * totalWeight;
+  const total = pool.reduce((s, t) => s + t.weight, 0);
+  let r = Math.random() * total;
   for (const t of pool) {
     r -= t.weight;
     if (r <= 0) return t;
@@ -74,7 +69,7 @@ export function pickRandomType(wave) {
   return pool[0];
 }
 
-// 生成一波请求列表
+// 生成一波请求
 let _reqCounter = 0;
 export function generateWave(wave) {
   const baseCount = 3 + Math.floor(wave * 1.2);
@@ -84,7 +79,7 @@ export function generateWave(wave) {
     const typeInfo = pickRandomType(wave);
     const scaledTokens = typeInfo.tokens + Math.floor(wave / 3);
 
-    const req = {
+    requests.push({
       instanceId: `req_${++_reqCounter}`,
       id: `R-${_reqCounter}`,
       ...typeInfo,
@@ -92,22 +87,7 @@ export function generateWave(wave) {
       maxTokens: scaledTokens,
       age: 0,
       cacheHit: false,
-    };
-
-    requests.push(req);
-
-    // DDoS 双倍生成
-    if (typeInfo.ddos) {
-      requests.push({
-        ...req,
-        instanceId: `req_${++_reqCounter}`,
-        id: `R-${_reqCounter}`,
-        tokens: scaledTokens,
-        maxTokens: scaledTokens,
-        age: 0,
-        cacheHit: false,
-      });
-    }
+    });
   }
 
   return requests;

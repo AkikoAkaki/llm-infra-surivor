@@ -46,13 +46,11 @@ export function createInitialState() {
     // ── 回合临时 Buff ──
     turnBuffs: {
       vramReduction: 0,
-      cacheMultiplier: 2,    // Cache Hit 时算力倍率
-      carryComputeNext: false,
-      extraComputeCarried: 0,
+      cacheMultiplier: 2,    // 相邻缓存命中的 Compute 倍率
     },
 
     // ── 日志 ──
-    logs: [{ msg: '[System] 集群服务已启动。第 1 波请求即将到来。', color: 'success' }],
+    logs: [{ msg: '集群服务已启动。第 1 波请求即将到来。', color: 'success' }],
 
     // ── 奖励池（波次结算后的选牌） ──
     rewardChoices: [],

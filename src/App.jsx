@@ -2,16 +2,15 @@ import { useReducer, useEffect, useCallback } from 'react';
 import { gameReducer } from './game/reducer.js';
 import { createInitialState } from './game/state.js';
 import StatusBar from './components/StatusBar.jsx';
-import LogTerminal from './components/LogTerminal.jsx';
 import TrafficQueue from './components/TrafficQueue.jsx';
 import CardHand from './components/CardHand.jsx';
+import ToastLog from './components/ToastLog.jsx';
 import WaveReward from './components/WaveReward.jsx';
 import GameOver from './components/GameOver.jsx';
 
 function App() {
   const [state, dispatch] = useReducer(gameReducer, null, createInitialState);
 
-  // 游戏启动时抽初始手牌
   useEffect(() => {
     dispatch({ type: 'DRAW_INITIAL_HAND' });
   }, []);
@@ -34,22 +33,41 @@ function App() {
 
   const handleRestart = useCallback(() => {
     dispatch({ type: 'RESTART', initialState: createInitialState() });
-    // 重新抽初始手牌由下一个 effect 触发
     setTimeout(() => dispatch({ type: 'DRAW_INITIAL_HAND' }), 0);
   }, []);
+
+  // 空格键 / 回车 结束回合
+  useEffect(() => {
+    const onKey = (e) => {
+      if (state.phase !== 'ACTION') return;
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        handleEndTurn();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [state.phase, handleEndTurn]);
 
   return (
     <div className="game-shell">
       <StatusBar state={state} />
 
       <div className="main-area">
-        <LogTerminal state={state} onEndTurn={handleEndTurn} />
         <TrafficQueue state={state} />
       </div>
 
       <CardHand state={state} onPlayCard={handlePlayCard} />
 
-      {/* 遮罩层 */}
+      {state.phase === 'ACTION' && (
+        <button className="end-turn-float" onClick={handleEndTurn}>
+          结束回合
+          <span className="kbd">Space</span>
+        </button>
+      )}
+
+      <ToastLog logs={state.logs} />
+
       {state.phase === 'REWARD' && (
         <WaveReward
           state={state}

@@ -1,9 +1,9 @@
-// 卡牌数据库 - 所有卡牌的定义
+// 卡牌数据库
 // type: 'Infra' | 'Optimize' | 'Ops'
-// action: 对 state 的 reducer 操作类型
+// 描述文案遵循：时效在前（"本回合 / 永久"），效果在后，简洁直白
 
 export const ALL_CARDS = [
-  // ── Infra 类 ──────────────────────────────────────────────────────────
+  // ── Infra ──────────────────────────────────────────────
   {
     id: 'infra_a100',
     name: 'A100 节点',
@@ -11,7 +11,7 @@ export const ALL_CARDS = [
     cost: 3,
     temp: 2,
     rarity: 'common',
-    desc: '永久 +4 Max VRAM。产生 2 温度。',
+    desc: '永久 +4 Max VRAM。产生 2 热量。',
     action: { type: 'ADD_MAX_VRAM', amount: 4, heat: 2 },
   },
   {
@@ -21,7 +21,7 @@ export const ALL_CARDS = [
     cost: 4,
     temp: 3,
     rarity: 'rare',
-    desc: '永久 +8 Max VRAM，+2 Base Compute。产生 3 温度。',
+    desc: '永久 +8 Max VRAM 与 +2 基础 Compute。产生 3 热量。',
     action: { type: 'UPGRADE_CLUSTER', vram: 8, compute: 2, heat: 3 },
   },
   {
@@ -31,7 +31,7 @@ export const ALL_CARDS = [
     cost: 1,
     temp: 0,
     rarity: 'common',
-    desc: '温度立即降低 4。',
+    desc: '立即降低 4 热量。',
     action: { type: 'COOL_DOWN', amount: 4 },
   },
   {
@@ -45,7 +45,7 @@ export const ALL_CARDS = [
     action: { type: 'ADD_MAX_ENERGY', amount: 1 },
   },
 
-  // ── Optimize 类 ────────────────────────────────────────────────────────
+  // ── Optimize ───────────────────────────────────────────
   {
     id: 'opt_int8',
     name: 'INT8 量化',
@@ -53,7 +53,7 @@ export const ALL_CARDS = [
     cost: 2,
     temp: 0,
     rarity: 'uncommon',
-    desc: '基础模型 VRAM 永久降为 1。本回合算力 -1。',
+    desc: '永久将模型基础 VRAM 占用降至 1。本回合 -1 Compute。',
     action: { type: 'QUANTIZE_BASE', baseVram: 1, computePenalty: 1 },
   },
   {
@@ -63,7 +63,7 @@ export const ALL_CARDS = [
     cost: 1,
     temp: 0,
     rarity: 'common',
-    desc: '本回合所有请求 VRAM 占用 -1（最低 1）。',
+    desc: '本回合所有请求的 VRAM 占用 -1（最低 1）。',
     action: { type: 'BUFF_VRAM_REDUCTION', amount: 1 },
   },
   {
@@ -73,7 +73,7 @@ export const ALL_CARDS = [
     cost: 2,
     temp: 3,
     rarity: 'common',
-    desc: '本回合算力 +5。产生 3 温度。',
+    desc: '本回合 +5 Compute。产生 3 热量。',
     action: { type: 'BUFF_COMPUTE', amount: 5, heat: 3 },
   },
   {
@@ -83,7 +83,7 @@ export const ALL_CARDS = [
     cost: 0,
     temp: 0,
     rarity: 'common',
-    desc: '将队列按类型排序，最大化相邻 Cache Hit。',
+    desc: '将队列按类型排序，最大化相邻缓存命中。',
     action: { type: 'REORDER_QUEUE' },
   },
   {
@@ -93,7 +93,7 @@ export const ALL_CARDS = [
     cost: 2,
     temp: 1,
     rarity: 'rare',
-    desc: '本回合 Cache Hit 的 Compute 倍率从 x2 提升到 x3。产生 1 温度。',
+    desc: '本回合缓存命中的请求获得 3 倍 Compute（原为 2 倍）。产生 1 热量。',
     action: { type: 'BUFF_CACHE_MULTIPLIER', multiplier: 3, heat: 1 },
   },
   {
@@ -103,11 +103,11 @@ export const ALL_CARDS = [
     cost: 1,
     temp: 0,
     rarity: 'uncommon',
-    desc: '立即对当前队列重新计算 Cache Hit，并为每个 Hit 额外回复 1 Compute。',
+    desc: '重排缓存链；每条命中的请求额外 +1 Compute。',
     action: { type: 'PREFIX_CACHE_BOOST' },
   },
 
-  // ── Ops 类 ────────────────────────────────────────────────────────────
+  // ── Ops ────────────────────────────────────────────────
   {
     id: 'ops_ratelimit',
     name: '限流丢弃',
@@ -115,7 +115,7 @@ export const ALL_CARDS = [
     cost: 0,
     temp: 0,
     rarity: 'common',
-    desc: '移除队列顶部的请求。SLA -1。',
+    desc: '移除队列首位请求。SLA -1。',
     action: { type: 'DROP_TOP_REQUEST', slaPenalty: 1 },
   },
   {
@@ -125,7 +125,7 @@ export const ALL_CARDS = [
     cost: 1,
     temp: 0,
     rarity: 'uncommon',
-    desc: '移除队列中所有"恶意越狱"类型请求。SLA -1 每个。',
+    desc: '清除队列中所有恶意越狱请求。每个 -1 SLA。',
     action: { type: 'CIRCUIT_BREAKER' },
   },
   {
@@ -135,7 +135,7 @@ export const ALL_CARDS = [
     cost: 2,
     temp: 0,
     rarity: 'rare',
-    desc: '温度立即归零。本回合 Compute 为 0。',
+    desc: '立即将热量归零。本回合 Compute 归零。',
     action: { type: 'ROLLBACK', resetHeat: true, zeroCom: true },
   },
   {
@@ -145,12 +145,12 @@ export const ALL_CARDS = [
     cost: 3,
     temp: 4,
     rarity: 'rare',
-    desc: '本回合算力 +10。产生 4 温度。本回合结束后算力值不归零（保留至下回合）。',
+    desc: '本回合 +10 Compute。产生 4 热量。',
     action: { type: 'AUTOSCALE', compute: 10, heat: 4 },
   },
 ];
 
-// 初始卡组（10 张普通卡的精简组合）
+// 初始卡组
 export const STARTER_DECK_IDS = [
   'infra_cooling',
   'infra_cooling',
@@ -175,7 +175,7 @@ export function buildStarterDeck() {
   }));
 }
 
-// 用于波次奖励时随机选牌池（排除初始低级卡）
+// 波次奖励池（排除初始低级卡）
 export const REWARD_POOL = ALL_CARDS.filter(
   (c) => !['infra_cooling', 'ops_ratelimit', 'opt_paged'].includes(c.id)
 );

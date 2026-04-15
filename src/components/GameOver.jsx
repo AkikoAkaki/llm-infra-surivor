@@ -3,11 +3,10 @@ export default function GameOver({ state, onRestart }) {
 
   return (
     <div className="overlay">
-      <div className="gameover-modal">
-        <div>
-          <div className="gameover-title">服务崩溃</div>
-          <div className="gameover-subtitle">SLA 降至 0，所有请求无法响应</div>
-        </div>
+      <div className="modal gameover-modal">
+        <div className="gameover-icon">!</div>
+        <div className="gameover-title">服务崩溃</div>
+        <div className="gameover-subtitle">SLA 降至 0，集群已无法响应请求。</div>
 
         <div className="gameover-stats">
           <div className="gameover-stat-row">
@@ -24,7 +23,10 @@ export default function GameOver({ state, onRestart }) {
           </div>
           <div className="gameover-stat-row">
             <span className="label">请求超时</span>
-            <span className="value" style={{ color: stats.requestsTimedOut > 0 ? 'var(--color-error)' : undefined }}>
+            <span
+              className="value"
+              style={stats.requestsTimedOut > 0 ? { color: 'var(--danger)' } : undefined}
+            >
               {stats.requestsTimedOut}
             </span>
           </div>
@@ -34,8 +36,8 @@ export default function GameOver({ state, onRestart }) {
           </div>
         </div>
 
-        <button className="btn-restart" onClick={onRestart}>
-          重新启动集群
+        <button className="btn-primary" onClick={onRestart}>
+          重启集群
         </button>
       </div>
     </div>
