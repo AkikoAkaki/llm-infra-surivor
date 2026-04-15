@@ -698,44 +698,49 @@ body {
   font-weight: 500;
 }
 
-/* ── Toast 日志（替代 LogTerminal） ──────────────────── */
-.toast-stack {
-  position: fixed;
-  bottom: var(--s-5);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column-reverse;
-  gap: var(--s-2);
-  z-index: 40;
-  pointer-events: none;
-  max-width: 520px;
-  width: 90vw;
+/* ── System Log / Console 面板 ──────────────────────── */
+.main-area > :first-child {
+  flex: 1; /* 流量队列自适应铺满上方 */
 }
 
-.toast {
+.system-log-panel {
+  height: 180px;
+  flex-shrink: 0;
+  animation: slide-in 220ms ease-out;
+}
+
+.log-console {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: var(--s-2) var(--s-4);
-  font-size: 13px;
-  color: var(--text-primary);
-  box-shadow: var(--shadow);
-  animation: toast-in 220ms ease-out;
+  line-height: 1.6;
+  padding: var(--s-2) var(--s-5) var(--s-4) !important;
   display: flex;
-  gap: var(--s-2);
-  align-items: center;
-  line-height: 1.4;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.toast.success { border-left: 3px solid var(--success); }
-.toast.error   { border-left: 3px solid var(--danger); color: var(--danger); }
-.toast.warn    { border-left: 3px solid var(--warn); color: var(--warn); }
-.toast.info    { border-left: 3px solid var(--accent); }
-.toast.dim     { color: var(--text-tertiary); }
-.toast.default { color: var(--text-secondary); }
+.log-entry {
+  display: flex;
+  gap: var(--s-3);
+  word-break: break-all;
+}
 
-.toast.fade-out { animation: toast-out 280ms ease-in forwards; }
+.log-prefix {
+  color: var(--text-tertiary);
+  user-select: none;
+}
+
+.log-msg {
+  flex: 1;
+}
+
+.log-entry.success { color: var(--success); }
+.log-entry.error   { color: var(--danger); font-weight: 500; }
+.log-entry.warn    { color: var(--warn); }
+.log-entry.info    { color: var(--accent); }
+.log-entry.dim     { color: var(--text-tertiary); }
+.log-entry.default { color: var(--text-secondary); }
 
 /* ── Overlay（奖励 / 游戏结束） ──────────────────────── */
 .overlay {

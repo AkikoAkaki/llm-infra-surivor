@@ -56,6 +56,7 @@ function App() {
 
       <div className="main-area">
         <TrafficQueue state={state} />
+        <ToastLog logs={state.logs} />
       </div>
 
       <CardHand state={state} onPlayCard={handlePlayCard} />
@@ -66,8 +67,6 @@ function App() {
           <span className="kbd">Space</span>
         </button>
       )}
-
-      <ToastLog logs={state.logs} />
 
       {state.phase === 'REWARD' && (
         <WaveReward

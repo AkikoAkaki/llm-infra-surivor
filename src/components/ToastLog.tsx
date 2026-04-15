@@ -1,58 +1,40 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { LogEntry } from '../game/types';
-
-const TOAST_LIFETIME_MS = 3400;
-const MAX_VISIBLE = 3;
 
 interface ToastLogProps {
   logs: LogEntry[];
 }
 
 export default function ToastLog({ logs }: ToastLogProps) {
-  const [visible, setVisible] = useState<LogEntry[]>([]);
-  const seenRef = useRef(new Set<string | number>());
+  const endRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll to bottom when new logs arrive
   useEffect(() => {
-    // 只展示新出现的日志（避免首次渲染把历史 log 全部 toast 出来）
-    const fresh = logs.filter((l) => {
-      const id = l.id ?? `${l.msg}-${l.color}`;
-      if (seenRef.current.has(id)) return false;
-      seenRef.current.add(id);
-      return true;
-    });
-    if (fresh.length === 0) return;
-
-    // 只关心玩家可能需要注意的条目（过滤纯 dim 分隔线等）
-    const meaningful = fresh.filter((l) => l.color !== 'dim');
-    if (meaningful.length === 0) return;
-
-    setVisible((prev) => [...prev, ...meaningful].slice(-MAX_VISIBLE));
-
-    // 定时移除
-    const timers = meaningful.map((l) =>
-      setTimeout(() => {
-        setVisible((prev) => prev.filter((x) => x !== l));
-      }, TOAST_LIFETIME_MS)
-    );
-    return () => timers.forEach(clearTimeout);
+    if (endRef.current) {
+      endRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [logs]);
 
-  // 首次挂载时跳过已有日志（只展示交互后新增的）
-  useEffect(() => {
-    for (const l of logs) {
-      const id = l.id ?? `${l.msg}-${l.color}`;
-      seenRef.current.add(id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
-    <div className="toast-stack" aria-live="polite">
-      {visible.map((l, i) => (
-        <div key={(l.id ?? i) + '-' + i} className={`toast ${l.color || 'default'}`}>
-          {l.msg}
+    <div className="panel system-log-panel">
+      <div className="panel-header" style={{ paddingBottom: '8px' }}>
+        <span className="panel-title">System Log</span>
+        <div className="panel-meta">
+          <div className="meta-item">
+            <span className="label">Live</span>
+            <span className="value" style={{ color: 'var(--success)' }}>●</span>
+          </div>
         </div>
-      ))}
+      </div>
+      <div className="panel-body log-console">
+        {logs.map((l, i) => (
+          <div key={(l.id ?? i) + '-' + i} className={`log-entry ${l.color || 'default'}`}>
+            <span className="log-prefix">&gt;</span>
+            <span className="log-msg">{l.msg}</span>
+          </div>
+        ))}
+        <div ref={endRef} style={{ height: 1, flexShrink: 0 }} />
+      </div>
     </div>
   );
 }
